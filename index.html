@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><meta http-equiv="X-UA-Compatible" content="IE=edge"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://api.anthropic.com" crossorigin>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://api.anthropic.com" crossorigin>
 <title>MirrorPrice — Quotation Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
@@ -17,9 +17,9 @@
   #sidebar{
     position:fixed !important;
     bottom:0 !important; left:0 !important; right:0 !important; top:auto !important;
-    width:100% !important; height:calc(56px + env(safe-area-inset-bottom)) !important;
+    width:100% !important; height:76px !important;
     flex-direction:row !important;
-    padding:0 0 env(safe-area-inset-bottom) 0 !important;
+    padding:0 0 20px 0 !important;
     border-right:none !important;
     border-top:1px solid var(--border) !important;
     z-index:9999 !important;
@@ -29,18 +29,18 @@
   }
   #sidebar .logo{display:none !important;}
   #sidebar .nav-section-label{display:none !important;}
-  #sidebar .nav-link{
+  #sidebar .nav-item{
     flex:1 !important; flex-direction:column !important; gap:2px !important;
     padding:6px 2px !important; font-size:9px !important; letter-spacing:0 !important;
     border-radius:0 !important; justify-content:center !important; align-items:center !important;
     min-width:0 !important; overflow:hidden !important; white-space:nowrap !important;
   }
-  #sidebar .nav-link svg{width:20px !important; height:20px !important;}
+  #sidebar .nav-item svg{width:20px !important; height:20px !important;}
   #sidebar .nav-footer{display:none !important;}
   #main{
     width:100% !important;
     min-width:0 !important;
-    padding-bottom:calc(72px + env(safe-area-inset-bottom)) !important;
+    padding-bottom:72px !important;
     overflow-x:hidden !important;
   }
   .page{padding:16px !important;}
@@ -2262,10 +2262,6 @@ async function openNacPreview() {
   var cat    = [e.target.category, e.target.subcategory].filter(Boolean).join(' · ');
   var apiKey = localStorage.getItem('mp_api_key');
 
-  // Fallback: si no hay estImgData, usar imagen de referencias
-  if(!img && e.refs && e.refs[0] && e.refs[0].productImage) img = e.refs[0].productImage;
-  window._nacPreviewImg = img || null;
-
   var html =
     '<div class="modal-header">' +
       '<h2 class="modal-title">Revisar antes de generar</h2>' +
@@ -2273,15 +2269,9 @@ async function openNacPreview() {
     '</div>' +
     '<div style="padding:0 4px;">' +
       '<div style="display:flex;gap:16px;margin-bottom:20px;align-items:flex-start;">' +
-        '<div style="position:relative;width:100px;height:100px;flex-shrink:0;">' +
-          '<div id="nac-preview-img-wrap" style="width:100px;height:100px;">' +
-            (img
-              ? '<img id="nac-preview-img" src="' + img + '" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">'
-              : '<div id="nac-preview-img" style="width:100px;height:100px;border-radius:8px;background:var(--surface2);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);">sin img</div>') +
-          '</div>' +
-          '<button onclick="document.getElementById(\'nac-preview-img-input\').click()" title="Cambiar foto" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;">✕</button>' +
-          '<input type="file" id="nac-preview-img-input" accept="image/*" style="display:none;" onchange="loadNacPreviewImg(this)">' +
-        '</div>' +
+        (img
+          ? '<img src="' + img + '" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);flex-shrink:0;">'
+          : '<div style="width:100px;height:100px;border-radius:8px;background:var(--surface2);flex-shrink:0;"></div>') +
         '<div style="flex:1;">' +
           '<div style="font-size:12px;color:var(--text2);margin-bottom:3px;">' + cat + '</div>' +
           '<div style="font-size:15px;font-weight:600;margin-bottom:10px;">' + (name || 'Sin nombre') + '</div>' +
@@ -2323,18 +2313,6 @@ async function openNacPreview() {
   document.getElementById('modal-body').innerHTML = html;
   openModal();
   if(apiKey) suggestNacDescription();
-}
-
-function loadNacPreviewImg(input) {
-  if(!input.files || !input.files[0]) return;
-  var fr = new FileReader();
-  fr.onload = function(e) {
-    var src = e.target.result;
-    window._nacPreviewImg = src;
-    var wrap = document.getElementById('nac-preview-img-wrap');
-    if(wrap) wrap.innerHTML = '<img id="nac-preview-img" src="' + src + '" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">';
-  };
-  fr.readAsDataURL(input.files[0]);
 }
 
 async function suggestNacDescription() {
@@ -2409,7 +2387,7 @@ function openNacConfirmSheet() {
   var e   = window._lastEst;
   var nac = window._lastNac;
   if(!e || !nac){ toast('Calculá el precio nacionalizado primero','error'); return; }
-  var img      = window._nacPreviewImg || window._estImgData || (e.refs && e.refs[0] && e.refs[0].productImage ? e.refs[0].productImage : null);
+  var img      = window._estImgData;
   var prodName = (document.getElementById('nac-prod-name') ? document.getElementById('nac-prod-name').value.trim() : '') || (e.target && e.target.productName) || 'Producto';
   var userDesc = (document.getElementById('nac-description') ? document.getElementById('nac-description').value.trim() : '');
   var today_str = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -5652,11 +5630,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* === MOBILE RESPONSIVE v8 === */
 @media screen and (max-width:768px){
   #app{display:block!important;grid-template-columns:none!important}
-  #sidebar{position:fixed!important;bottom:0!important;left:0!important;right:0!important;top:auto!important;width:100%!important;height:calc(56px + env(safe-area-inset-bottom))!important;flex-direction:row!important;padding:0 0 env(safe-area-inset-bottom) 0!important;border-right:none!important;border-top:1px solid #252530!important;z-index:9999!important;overflow:hidden!important;background:#111117!important}
-  #main{width:100%!important;min-width:0!important;padding-bottom:calc(72px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+  #sidebar{position:fixed!important;bottom:0!important;left:0!important;right:0!important;top:auto!important;width:100%!important;height:56px!important;flex-direction:row!important;padding:0!important;border-right:none!important;border-top:1px solid #252530!important;z-index:9999!important;overflow:hidden!important;background:#111117!important}
   #sidebar .logo,#sidebar .nav-section-label,#sidebar .nav-footer{display:none!important}
-  #sidebar .nav-link{flex:1!important;flex-direction:column!important;gap:2px!important;padding:6px 2px!important;font-size:9px!important;border-radius:0!important;justify-content:center!important;align-items:center!important;min-width:0!important}
-  #main{width:100%!important;min-width:0!important;padding-bottom:calc(72px + env(safe-area-inset-bottom))!important;overflow-x:hidden!important}
+  #sidebar .nav-item{flex:1!important;flex-direction:column!important;gap:2px!important;padding:6px 2px!important;font-size:9px!important;border-radius:0!important;justify-content:center!important;align-items:center!important;min-width:0!important}
+  #main{width:100%!important;min-width:0!important;padding-bottom:72px!important;overflow-x:hidden!important}
   .page{padding:16px!important}
   .stats-grid{grid-template-columns:1fr 1fr!important}
   .dash-grid{grid-template-columns:1fr!important}
